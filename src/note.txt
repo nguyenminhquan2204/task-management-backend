@@ -1,0 +1,13 @@
+npm install --save-dev sequelize-cli
+npm install --save sequelize
+node_modules/.bin/sequelize init
+npx sequelize-cli model:generate --name User --attributes firstName:string,lastName:string,email:string
+npm install --save mysql2
+
+npx sequelize-cli db:migrate
+npx sequelize-cli db:seed:all
+npx sequelize-cli db:seed:undo
+
+
+------------------------
+"logging": true,  | dung de in cau lenh query
