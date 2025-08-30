@@ -10,6 +10,7 @@ npx sequelize-cli db:seed:undo
 
 --------------------
 npm install bcryptjs
-
+npm install nodemailer
+npm install lodash
 ------------------------
 "logging": true,  | dung de in cau lenh query
