@@ -8,6 +8,8 @@ npx sequelize-cli db:migrate
 npx sequelize-cli db:seed:all
 npx sequelize-cli db:seed:undo
 
+--------------------
+npm install bcryptjs
 
 ------------------------
 "logging": true,  | dung de in cau lenh query
