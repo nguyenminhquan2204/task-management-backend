@@ -3,6 +3,7 @@ import homeController from "../controllers/homeController";
 import userController from "../controllers/userController";
 import projectController from '../controllers/projectController';
 import taskController from '../controllers/taskController';
+import commentController from '../controllers/commentController';
 
 let router = express.Router();
 
@@ -37,13 +38,18 @@ let initWebRoutes = (app) => {
    router.get('/api/get-all-projects', projectController.getAllProjects);
    router.get('/api/get-project-by-id', projectController.getProjectById);
    router.delete('/api/delete-project-by-id', projectController.deleteProject);
-   router.get('/api/search-projects-by-name', projectController.getSearchProjectsByName);
+   router.get('/api/search-projects-by-name-status', projectController.getSearchProjectsByName);
 
    // API task
    router.post('/api/create-task', taskController.postCreateTask);
    router.get('/api/get-all-tasks', taskController.getAllTasks);
    router.get('/api/get-task-by-id', taskController.getTaskById);
    router.delete('/api/delete-task-by-id', taskController.deleteTaskById);
+   router.get('/api/search-tasks-by-title-status', taskController.getSearchTaskByTitleStatus)
+   router.patch('/api/change-status-task-by-id', taskController.patchChangeStatusTaskById)
+
+   // API comments
+   router.post('/api/create-comment', commentController.postCreateComment);
 
    return app.use("/", router);
 }

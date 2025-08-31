@@ -80,7 +80,7 @@ let deleteProject = async (req, res) => {
 
 let getSearchProjectsByName = async (req, res) => {
    try {
-      let data = await projectServices.getSearchProjectsByName(req.query.name);
+      let data = await projectServices.getSearchProjectsByName(req.query);
       return res.status(200).json(data);
    } catch (error) {
       console.log(error);

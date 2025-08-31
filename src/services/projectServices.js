@@ -251,45 +251,49 @@ let deleteProject = (id) => {
    })
 }
 
-let getSearchProjectsByName = (name) => {
+let getSearchProjectsByName = (query) => {
    return new Promise(async (resolve, reject) => {
       try {
-         if (!name) {
-            let data = await db.Project.findAll({
-               include: [
-                  {
-                     model: db.User,
-                     as: 'creatorInfo',
-                     attributes: ['userName', 'fullName', 'email', 'role']
-                  }
+         let {name, status} = query;
+         let whereCondition = {};
+         if(name && status) {
+            whereCondition = {
+               [Op.and]: [
+                  {name: {[Op.like]: `%${name}%`}},
+                  {status: {[Op.eq]: status}}
                ]
-            });
-            resolve({
-               errorCode: 0,
-               errorMessage: 'Get all projects successfully',
-               projects: data
-            });
+            }
+         } else if(name) {
+            whereCondition = {
+               name: {[Op.like]: `%${name}%`}
+            }
+         } else if (status) {
+            whereCondition = {
+               status: {[Op.eq]: status}
+            }
          } else {
-            let data = await db.Project.findAll({
-               where: {
-                  name: {
-                     [Op.like]: `%${name}%`
-                  }
-               },
-               include: [
-                  {
-                     model: db.User,
-                     as: 'creatorInfo',
-                     attributes: ['userName', 'fullName', 'email', 'role']
-                  }
-               ]
-            });
             resolve({
-               errorCode: 0,
-               errorMessage: 'Search projects by name successfully',
-               projects: data
-            });
+               errorCode: 1,
+               errorMessage: 'Missing parameter!'
+            })
          }
+         // find data
+         let data = await db.Project.findAll({
+            where: whereCondition,
+            include: [
+               {
+                  model: db.User,
+                  as: 'creatorInfo',
+                  attributes: ['userName', 'fullName', 'email', 'role']
+               }
+            ]
+         })
+
+         resolve({
+            errorCode: 0,
+            errorMessage: 'Search by name and status successfully !',
+            data: data
+         })
       } catch (error) {
          reject(error);
       }

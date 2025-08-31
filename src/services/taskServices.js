@@ -1,4 +1,4 @@
-import { where } from "sequelize";
+import { where, Op } from "sequelize";
 import { checkIsValidInput } from "../helpers/checkIsValidInput";
 import db from "../models/index";
 import _, { assign, at } from 'lodash';
@@ -143,9 +143,98 @@ let deleteTaskById = (id) => {
    })
 }
 
+let getSearchTaskByTitleStatus = (query) => {
+   return new Promise(async (resolve, reject) => {
+      try {
+         const {title, status} = query;
+         let whereCondition = {}
+         if(title && status) {
+            whereCondition = {
+               [Op.and]: [
+                  {title: {[Op.like]: `%${title}%`}},
+                  {status: {[Op.eq]: status}}
+               ]
+            }
+         } else if(title) {
+            whereCondition = {
+               title: {[Op.like]: `%${title}%`}
+            }
+         } else if(status) {
+            whereCondition = {
+               status: {[Op.eq]: status}
+            }
+         }
+
+         let data = await db.Task.findAll({
+            where: whereCondition,
+            include: [
+               { model: db.Project, as: 'projectData', attributes: ['name', 'description', 'status', 'startDate', 'endDate'] },
+               { model: db.User, as: 'userInfo', attributes: ['userName', 'email', 'fullName', 'role'] }
+            ]
+         })
+         resolve({
+            errorCode: 0,
+            errorMessage: 'Search successfully!',
+            data: data
+         })
+      } catch (error) {
+         reject(error);
+      }
+   })
+}
+
+let patchChangeStatusTaskById = (data) => {
+   return new Promise(async (resolve, reject) => {
+      try {
+         if(_.isEmpty(data)) {
+            resolve({
+               errorCode: 1,
+               errorMessage: 'Missing data'
+            })
+         } else {
+            let check = checkIsValidInput(data, ['id','status']);
+            if(!check.isValid) {
+               resolve({
+                  errorCode: 2,
+                  errorMessage: `Missing parameter: ${check.element}`
+               })
+            } else {
+               let task = await db.Task.findOne(
+                  { 
+                     where: {id: data.id},
+                     include: [
+                        { model: db.Project, as: 'projectData', attributes: ['name', 'description', 'status', 'startDate', 'endDate'] },
+                        { model: db.User, as: 'userInfo', attributes: ['userName', 'email', 'fullName', 'role'] }
+                     ]
+                  }
+               );
+               if(!task) {
+                  resolve({
+                     errorCode: 3,
+                     errorMessage: 'Task not found'
+                  })
+               } else {
+                  task.status = data.status;
+                  await task.save();
+                  resolve({
+                     errorCode: 0,
+                     errorMessage: 'Change status task by id successfully!',
+                     data: task
+                  })
+               }
+            }
+         }
+      } catch (error) {
+         reject(error);
+      }
+   })
+}
+
 module.exports = {
    postCreateTask,
    getAllTasks,
    getTaskById,
-   deleteTaskById
+   deleteTaskById,
+   getSearchTaskByTitleStatus,
+   patchChangeStatusTaskById
 }
