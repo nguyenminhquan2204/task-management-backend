@@ -106,6 +106,19 @@ let postVerifyForgotPassword = async (req, res) => {
    }
 }
 
+let getSearchUsersByUserName = async (req, res) => {
+   try {
+      let data = await userServices.getSearchUsersByUserName(req.query.name);
+      return res.status(200).json(data);
+   } catch (error) {
+      console.log(error);
+      return res.status(200).json({
+         errorCode: -1,
+         errorMessage: 'Error from server! Contact Nguyen Quan'
+      })
+   }
+}
+
 module.exports = {
    postCreateUser: postCreateUser,
    putEditUser: putEditUser,
@@ -115,4 +128,6 @@ module.exports = {
    postLogin: postLogin,
    postForgotPassword: postForgotPassword,
    postVerifyForgotPassword: postVerifyForgotPassword,
+   getSearchUsersByUserName: getSearchUsersByUserName,
+
 } 

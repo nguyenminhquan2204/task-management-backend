@@ -22,6 +22,7 @@ let initWebRoutes = (app) => {
    router.get('/api/get-all-users', userController.getAllUsers);
    router.get('/api/get-user-by-id', userController.getUserById);
    router.delete('/api/delete-user-by-id', userController.deleteUser);
+   router.get('/api/search-users-by-username', userController.getSearchUsersByUserName);
 
    // API login
    router.post('/api/login', userController.postLogin);

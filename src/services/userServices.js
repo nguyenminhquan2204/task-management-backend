@@ -4,6 +4,7 @@ import emailServices from './emailServices';
 import { checkIsValidInput } from '../helpers/checkIsValidInput';
 import { hashValue } from '../helpers/hashValue';
 import { randomDigitString } from '../helpers/randomDigitString';
+import { Op } from 'sequelize';
 
 let postCreateUser = (data) => {
    return new Promise(async (resolve, reject) => {
@@ -342,6 +343,43 @@ let postVerifyForgotPassword = (data) => {
    })
 }
 
+let getSearchUsersByUserName = (name) => {
+   return new Promise(async (resolve, reject) => {
+      try {
+         if(!name) {
+            let data = await db.User.findAll({
+               attributes: {
+                  exclude: ['password', 'token']
+               }
+            });
+            resolve({
+               errorCode: 0,
+               errorMessage: 'Get full users in database',
+               data: data
+            })
+         } else {
+            let data = await db.User.findAll({
+               where: {
+                  username: {
+                     [Op.like]: `%${name}%`
+                  }
+               },
+               attributes: {
+                  exclude: ['password', 'token']
+               }
+            })
+            resolve({
+               errorCode: 0,
+               errorMessage: 'Get users by username successfully',
+               data: data
+            })
+         }
+      } catch (error) {
+         reject(error);
+      }
+   })
+}
+
 module.exports = {
    postCreateUser: postCreateUser,
    putEditUser: putEditUser,
@@ -351,5 +389,6 @@ module.exports = {
    postLogin: postLogin,
    postForgotPassword: postForgotPassword,
    postVerifyForgotPassword: postVerifyForgotPassword,
+   getSearchUsersByUserName: getSearchUsersByUserName,
 
 }
