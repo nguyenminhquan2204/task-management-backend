@@ -1,44 +1,15 @@
 import db from '../models/index';
-import bcrypt from 'bcryptjs';
 import _ from 'lodash';
 import emailServices from './emailServices';
-
-const salt = bcrypt.genSaltSync(10);
-
-let hashPassword = (password) => {
-   return new Promise(async (resolve, reject) => {
-      try {
-         let hash = await bcrypt.hashSync(password, salt);
-         resolve(hash);
-      } catch (error) {
-         reject(error);
-      }
-   })
-}
-
-let checkInputValue = (data, inputType) => {
-   let isValid = true;
-   let element = '';
-
-   for (let i = 0; i < inputType.length; i++) {
-      if (!data[inputType[i]]) {
-         isValid = false;
-         element = inputType[i];
-         break;
-      }
-   }
-
-   return {
-      isValid: isValid,
-      element: element
-   }
-}
+import { checkIsValidInput } from '../helpers/checkIsValidInput';
+import { hashValue } from '../helpers/hashValue';
+import { randomDigitString } from '../helpers/randomDigitString';
 
 let postCreateUser = (data) => {
    return new Promise(async (resolve, reject) => {
       try {
          // console.log('data from service: ', data);
-         let check = checkInputValue(data, ['userName', 'email', 'password', 'fullName', 'role']);
+         let check = checkIsValidInput(data, ['userName', 'email', 'password', 'fullName', 'role']);
          // console.log('Check', check);
          if (_.isEmpty(data) || !check.isValid) {
             resolve({
@@ -59,7 +30,7 @@ let postCreateUser = (data) => {
                })
             } else {
                // Hash password
-               let hashedPassword = await hashPassword(data.password);
+               let hashedPassword = await hashValue(data.password);
                // Create user
                let newUser = await db.User.create({
                   userName: data.userName,
@@ -85,7 +56,7 @@ let postCreateUser = (data) => {
 let putEditUser = (data) => {
    return new Promise(async (resolve, reject) => {
       try {
-         let check = checkInputValue(data, ['userName', 'email', 'fullName', 'password', 'role']);
+         let check = checkIsValidInput(data, ['userName', 'email', 'fullName', 'password', 'role']);
          if (_.isEmpty(data) || !check.isValid) {
             resolve({
                errorCode: 1,
@@ -106,7 +77,7 @@ let putEditUser = (data) => {
                })
             } else {
                // Update user
-               let hashedPassword = await hashPassword(data.password);
+               let hashedPassword = await hashValue(data.password);
 
                await db.User.update({
                   userName: data.userName,
@@ -229,7 +200,7 @@ let deleteUser = (id) => {
 let postLogin = (data) => {
    return new Promise(async (resolve, reject) => {
       try {
-         let check = checkInputValue(data, ['email', 'password']);
+         let check = checkIsValidInput(data, ['email', 'password']);
 
          if (_.isEmpty(data) || !check.isValid) {
             resolve({
@@ -270,14 +241,6 @@ let postLogin = (data) => {
          reject(error);
       }
    })
-}
-
-let randomDigitString = (n) => {
-   let result = '';
-   for (let i = 0; i < n; i++) {
-      result += Math.floor(Math.random() * 10);
-   }
-   return result;
 }
 
 let postForgotPassword = (data) => {
@@ -330,7 +293,7 @@ let postVerifyForgotPassword = (data) => {
    return new Promise(async (resolve, reject) => {
       try {
          if(!_.isEmpty(data)) {
-            let check = checkInputValue(data, ['email', 'token', 'password']);
+            let check = checkIsValidInput(data, ['email', 'token', 'password']);
             
             if(!check.isValid) {
                resolve({
@@ -351,7 +314,7 @@ let postVerifyForgotPassword = (data) => {
                      errorMessage: 'Invalid token or email'
                   })
                } else {
-                  let hashedPassword = await hashPassword(data.password);
+                  let hashedPassword = await hashValue(data.password);
                   await db.User.update({
                      password: hashedPassword,
                      token: null
