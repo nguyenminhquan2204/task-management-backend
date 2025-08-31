@@ -1,7 +1,7 @@
 import { checkIsValidInput } from '../helpers/checkIsValidInput';
 import db from '../models/index';
 import _ from 'lodash';
-import { Op } from 'sequelize';
+import { Op, where } from 'sequelize';
 
 let postCreateProject = (data) => {
    return new Promise(async (resolve, reject) => {
@@ -12,7 +12,7 @@ let postCreateProject = (data) => {
                errorMessage: 'Missing project data'
             })
          } else {
-            let check = checkIsValidInput(data, ['name', 'description', 'startDate', 'endDate', 'status']);
+            let check = checkIsValidInput(data, ['name', 'description', 'startDate', 'endDate', 'status','createdBy']);
 
             if (!check.isValid) {
                resolve({
@@ -20,19 +20,30 @@ let postCreateProject = (data) => {
                   errorMessage: `Missing parameters: ${check.element}`
                })
             } else {
-               let newProject = await db.Project.create({
-                  name: data.name,
-                  description: data.description,
-                  startDate: data.startDate,
-                  endDate: data.endDate,
-                  status: data.status
-               });
+               let project = await db.Project.findOne({
+                  where: {name: data.name}
+               })
 
-               resolve({
-                  errorCode: 0,
-                  errorMessage: 'Create project successfully',
-                  project: newProject
-               });
+               if(project) {
+                  resolve({
+                     errorCode: 3,
+                     errorMessage: 'Project name is already in use'
+                  })
+               } else {
+                  await db.Project.create({
+                     name: data.name,
+                     description: data.description,
+                     startDate: data.startDate,
+                     endDate: data.endDate,
+                     status: data.status,
+                     createdBy: data.createdBy
+                  })
+
+                  resolve({
+                     errorCode: 0,
+                     errorMessage: 'Create project successfully'
+                  })
+               }
             }
          }
       } catch (error) {

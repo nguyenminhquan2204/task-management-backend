@@ -17,7 +17,7 @@ module.exports = {
       //   }
       },
       assignedTo: {
-        type: Sequelize.STRING
+        type: Sequelize.INTEGER
       },
       title: {
         type: Sequelize.STRING

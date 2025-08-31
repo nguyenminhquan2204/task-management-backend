@@ -21,6 +21,9 @@ module.exports = {
       endDate: {
          type: Sequelize.STRING
       },
+      createdBy: {
+        type: Sequelize.INTEGER
+      },
       status: {
          type: Sequelize.STRING
       },

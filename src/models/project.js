@@ -18,7 +18,8 @@ module.exports = (sequelize, DataTypes) => {
     description: DataTypes.TEXT,
     startDate: DataTypes.STRING,
     endDate: DataTypes.STRING,
-    status: DataTypes.STRING
+    status: DataTypes.STRING,
+    createdBy: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'Project',
