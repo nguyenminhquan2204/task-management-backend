@@ -11,6 +11,8 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      Task.belongsTo(models.Project, {foreignKey: 'projectId', targetKey: 'id', as: 'projectData'})
+      Task.belongsTo(models.User, {foreignKey: 'assignedTo', targetKey: 'id', as: 'userInfo'})
     }
   }
   Task.init({
@@ -19,7 +21,8 @@ module.exports = (sequelize, DataTypes) => {
     title: DataTypes.STRING,
     description: DataTypes.TEXT,
     status: DataTypes.STRING,
-    priority: DataTypes.STRING
+    priority: DataTypes.STRING,
+    dueDate: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'Task',

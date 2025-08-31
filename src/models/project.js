@@ -11,6 +11,9 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      // Project.belongsTo(models.User, {foreignKey: 'createdBy', targetKey: 'id', as: 'creatorData'})
+      Project.belongsTo(models.User, {foreignKey: 'createdBy', targetKey: 'id', as: 'creatorInfo'})
+      Project.hasMany(models.Task, {foreignKey: 'projectId', as: 'projectData'})
     }
   }
   Project.init({

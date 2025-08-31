@@ -153,7 +153,17 @@ let patchUpdateStatusProject = (data) => {
 let getAllProjects = () => {
    return new Promise(async (resolve, reject) => {
       try {
-         let data = await db.Project.findAll();
+         let data = await db.Project.findAll(
+            {
+               include: [
+                  {
+                     model: db.User,
+                     as: 'creatorInfo',
+                     attributes: ['userName', 'fullName', 'email', 'role']
+                  }
+               ]
+            }
+         );
          resolve({
             errorCode: 0,
             errorMessage: 'Get all projects successfully',
@@ -177,7 +187,14 @@ let getProjectById = (id) => {
             let project = await db.Project.findOne({
                where: {
                   id: id
-               }
+               },
+               include: [
+                  {
+                     model: db.User,
+                     as: 'creatorInfo',
+                     attributes: ['userName', 'fullName', 'email', 'role']
+                  }
+               ]
             });
 
             if (!project) {
@@ -238,7 +255,15 @@ let getSearchProjectsByName = (name) => {
    return new Promise(async (resolve, reject) => {
       try {
          if (!name) {
-            let data = await db.Project.findAll();
+            let data = await db.Project.findAll({
+               include: [
+                  {
+                     model: db.User,
+                     as: 'creatorInfo',
+                     attributes: ['userName', 'fullName', 'email', 'role']
+                  }
+               ]
+            });
             resolve({
                errorCode: 0,
                errorMessage: 'Get all projects successfully',
@@ -251,7 +276,13 @@ let getSearchProjectsByName = (name) => {
                      [Op.like]: `%${name}%`
                   }
                },
-               query: true
+               include: [
+                  {
+                     model: db.User,
+                     as: 'creatorInfo',
+                     attributes: ['userName', 'fullName', 'email', 'role']
+                  }
+               ]
             });
             resolve({
                errorCode: 0,

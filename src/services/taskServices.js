@@ -1,0 +1,151 @@
+import { where } from "sequelize";
+import { checkIsValidInput } from "../helpers/checkIsValidInput";
+import db from "../models/index";
+import _, { assign, at } from 'lodash';
+
+let postCreateTask = (data) => {
+   return new Promise(async (resolve, reject) => {
+      try {
+         if(_.isEmpty(data)) {
+            resolve({
+               errorCode: 1,
+               errorMessage: 'Missing required data'
+            })
+         } else {
+            let check = checkIsValidInput(data, ['projectId','assignedTo','title','description','status','priority','dueDate']);
+
+            if(!check.isValid) {
+               resolve({
+                  errorCode: 2,
+                  errorMessage: `Missing parameter: ${check.element}`
+               })
+            } else {
+               let task = await db.Task.findOne({
+                  where: {title: data.title, assignedTo: data.assignedTo}
+               })
+               if(task) {
+                  resolve({
+                     errorCode: 3,
+                     errorMessage: 'Task already exists in users'
+                  });
+               } else {
+                  let task = await db.Task.create({
+                     projectId: data.projectId,
+                     assignedTo: data.assignedTo,
+                     title: data.title,
+                     description: data.description,
+                     status: data.status,
+                     priority: data.priority,
+                     dueDate: data.dueDate
+                  });
+
+                  resolve({
+                     errorCode: 0,
+                     errorMessage: 'OK',
+                     data: task
+                  });
+               }
+            }
+         }
+      } catch (error) {
+         reject(error);  
+      }
+   })
+}
+
+let getAllTasks = () => {
+   return new Promise(async (resolve, reject) => {
+      try {
+         let data = await db.Task.findAll(
+            {
+               include: [
+                  { model: db.Project, as: 'projectData', attributes: ['name', 'description', 'status', 'startDate', 'endDate'] },
+                  { model: db.User, as: 'userInfo', attributes: ['userName', 'email', 'fullName', 'role'] }
+               ]
+            }
+         );
+         resolve({
+            errorCode: 0,
+            errorMessage: 'OK',
+            data: data
+         });
+      } catch (error) {
+         reject(error);
+      }
+   })
+}
+
+let getTaskById = (id) => {
+   return new Promise(async (resolve, reject) => {
+      try {
+         if(!id) {
+            resolve({
+               errorCode: 1,
+               errorMessage: 'Missing required parameter'
+            })
+         } else {
+            let data = await db.Task.findOne({
+               where: {id: id},
+               include: [
+                  { model: db.Project, as: 'projectData', attributes: ['name', 'description', 'status', 'startDate', 'endDate'] },
+                  { model: db.User, as: 'userInfo', attributes: ['userName', 'email', 'fullName', 'role'] }
+               ]
+            });
+            if(data) {
+               resolve({
+                  errorCode: 0,
+                  errorMessage: 'OK',
+                  data: data
+               })
+            } else {
+               resolve({
+                  errorCode: 2,
+                  errorMessage: 'Task not found'
+               })
+            }
+         }
+      } catch (error) {
+         reject(error);
+      }
+   })
+}
+
+let deleteTaskById = (id) => {
+   return new Promise(async (resolve, reject) => {
+      try {
+         if(!id) {
+            resolve({
+               errorCode: 1,
+               errorMessage: 'Missing parameter'
+            })
+         } else {
+            let data = await db.Task.findOne(
+               {
+                  where: {id: id}
+               }
+            )
+            if(data) {
+               await data.destroy();
+               resolve({
+                  errorCode: 0,
+                  errorMessage: 'Delete task by id successfully!'
+               })
+            } else {
+               resolve({
+                  errorCode: 2,
+                  errorMessage: 'Invalid ID or id not exist!'
+               })
+            }
+         }
+      } catch (error) {
+         reject(error);
+      }
+   })
+}
+
+module.exports = {
+   postCreateTask,
+   getAllTasks,
+   getTaskById,
+   deleteTaskById
+}

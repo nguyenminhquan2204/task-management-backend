@@ -11,10 +11,6 @@ module.exports = {
       },
       projectId: {
         type: Sequelize.INTEGER,
-      //   references: {
-      //     model: 'Project',
-      //     key: 'projectId'
-      //   }
       },
       assignedTo: {
         type: Sequelize.INTEGER
@@ -29,6 +25,9 @@ module.exports = {
          type: Sequelize.STRING
       },
       priority: {
+        type: Sequelize.STRING
+      },
+      dueDate: {
         type: Sequelize.STRING
       },
       createdAt: {

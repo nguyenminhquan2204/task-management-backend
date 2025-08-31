@@ -2,6 +2,7 @@ import express from "express";
 import homeController from "../controllers/homeController";
 import userController from "../controllers/userController";
 import projectController from '../controllers/projectController';
+import taskController from '../controllers/taskController';
 
 let router = express.Router();
 
@@ -37,6 +38,12 @@ let initWebRoutes = (app) => {
    router.get('/api/get-project-by-id', projectController.getProjectById);
    router.delete('/api/delete-project-by-id', projectController.deleteProject);
    router.get('/api/search-projects-by-name', projectController.getSearchProjectsByName);
+
+   // API task
+   router.post('/api/create-task', taskController.postCreateTask);
+   router.get('/api/get-all-tasks', taskController.getAllTasks);
+   router.get('/api/get-task-by-id', taskController.getTaskById);
+   router.delete('/api/delete-task-by-id', taskController.deleteTaskById);
 
    return app.use("/", router);
 }
