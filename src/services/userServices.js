@@ -1,51 +1,68 @@
 import db from '../models/index';
 import _ from 'lodash';
 import emailServices from './emailServices';
-import { checkIsValidInput } from '../helpers/checkIsValidInput';
-import { hashValue } from '../helpers/hashValue';
-import { randomDigitString } from '../helpers/randomDigitString';
-import { Op } from 'sequelize';
+import {
+   checkIsValidInput
+} from '../helpers/checkIsValidInput';
+import {
+   hashValue
+} from '../helpers/hashValue';
+import {
+   randomDigitString
+} from '../helpers/randomDigitString';
+import {
+   Op
+} from 'sequelize';
+import {
+   randomString
+} from '../helpers/randomString';
+import bcrypt from 'bcryptjs';
 
 let postCreateUser = (data) => {
    return new Promise(async (resolve, reject) => {
       try {
-         // console.log('data from service: ', data);
-         let check = checkIsValidInput(data, ['userName', 'email', 'password', 'fullName', 'role']);
-         // console.log('Check', check);
-         if (_.isEmpty(data) || !check.isValid) {
+         if(_.isEmpty(data)) {
             resolve({
                errorCode: 1,
-               errorMessage: `Missing parameter: ${check.element}`
+               errorMessage: 'Missing data'
             })
          } else {
-            let emailExist = await db.User.findOne({
-               where: {
-                  email: data.email
-               }
-            });
-
-            if (emailExist) {
+            let check = checkIsValidInput(data, ['userName', 'email', 'password', 'fullName', 'role']);
+            if(!check.isValid) {
                resolve({
                   errorCode: 2,
-                  errorMessage: `Email already exists`
+                  errorMessage: `Missing parameter: ${check.element}`
                })
             } else {
-               // Hash password
-               let hashedPassword = await hashValue(data.password);
-               // Create user
-               let newUser = await db.User.create({
-                  userName: data.userName,
-                  email: data.email,
-                  password: hashedPassword,
-                  fullName: data.fullName,
-                  role: data.role
+               let emailExist = await db.User.findOne({
+                  where: {
+                     email: data.email
+                  }
                });
 
-               resolve({
-                  errorCode: 0,
-                  errorMessage: `Create user successfully`,
-                  user: newUser
-               })
+               if (emailExist) {
+                  resolve({
+                     errorCode: 2,
+                     errorMessage: `Email already exists`
+                  })
+               } else {
+                  // Hash password
+                  let hashedPassword = await hashValue(data.password);
+                  // Create user
+                  let newUser = await db.User.create({
+                     userName: data.userName,
+                     email: data.email,
+                     password: hashedPassword,
+                     fullName: data.fullName,
+                     role: data.role
+                  });
+
+                  resolve({
+                     errorCode: 0,
+                     errorMessage: `Create user successfully`,
+                     user: newUser
+                  })
+               }
             }
          }
       } catch (error) {
@@ -201,40 +218,48 @@ let deleteUser = (id) => {
 let postLogin = (data) => {
    return new Promise(async (resolve, reject) => {
       try {
-         let check = checkIsValidInput(data, ['email', 'password']);
+         // let check = checkIsValidInput(data, ['email', 'password']);
 
-         if (_.isEmpty(data) || !check.isValid) {
+         if (_.isEmpty(data)) {
             resolve({
                errorCode: 1,
-               errorMessage: `Missing parameter: ${check.element}`
+               errorMessage: 'Missing data'
             })
          } else {
-            let user = await db.User.findOne({
-               where: {
-                  email: data.email
-               },
-               raw: true
-            })
-
-            if (!user) {
+            let check = checkIsValidInput(data, ['email', 'password']);
+            if (!check.isValid) {
                resolve({
                   errorCode: 2,
-                  errorMessage: 'User not found or email not exist !'
+                  errorMessage: `Missing parameter: ${check.element}`
                })
             } else {
-               let checkPassword = bcrypt.compareSync(data.password, user.password);
-               if (!checkPassword) {
+               let user = await db.User.findOne({
+                  where: {
+                     email: data.email
+                  },
+                  raw: true
+               })
+               if (!user) {
                   resolve({
                      errorCode: 3,
-                     errorMessage: 'Wrong password!'
+                     errorMessage: 'User not found or email not exist !'
                   })
                } else {
-                  delete user.password;
-                  resolve({
-                     errorCode: 0,
-                     errorMessage: 'Login successfully!',
-                     user: user
-                  })
+                  let checkPassword = bcrypt.compareSync(data.password, user.password);
+                  if (!checkPassword) {
+                     resolve({
+                        errorCode: 4,
+                        errorMessage: 'Wrong password!'
+                     })
+                  } else {
+                     delete user.password;
+                     user.token = randomString(20);
+                     resolve({
+                        errorCode: 0,
+                        errorMessage: 'Login successfully!',
+                        user: user
+                     })
+                  }
                }
             }
          }
@@ -274,7 +299,7 @@ let postForgotPassword = (data) => {
                      email: data.email
                   }
                })
-               
+
                // send email
                await emailServices.sendEmailResetPassword(data.email, token);
 
@@ -293,10 +318,10 @@ let postForgotPassword = (data) => {
 let postVerifyForgotPassword = (data) => {
    return new Promise(async (resolve, reject) => {
       try {
-         if(!_.isEmpty(data)) {
+         if (!_.isEmpty(data)) {
             let check = checkIsValidInput(data, ['email', 'token', 'password']);
-            
-            if(!check.isValid) {
+
+            if (!check.isValid) {
                resolve({
                   errorCode: 1,
                   errorMessage: `Missing parameter: ${check.element}`
@@ -346,7 +371,7 @@ let postVerifyForgotPassword = (data) => {
 let getSearchUsersByUserName = (name) => {
    return new Promise(async (resolve, reject) => {
       try {
-         if(!name) {
+         if (!name) {
             let data = await db.User.findAll({
                attributes: {
                   exclude: ['password', 'token']

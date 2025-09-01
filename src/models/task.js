@@ -13,6 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       Task.belongsTo(models.Project, {foreignKey: 'projectId', targetKey: 'id', as: 'projectData'})
       Task.belongsTo(models.User, {foreignKey: 'assignedTo', targetKey: 'id', as: 'userInfo'})
+      Task.hasMany(models.comment, {foreignKey: 'taskId', as: 'taskInfo'})
     }
   }
   Task.init({

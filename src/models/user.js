@@ -13,6 +13,8 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       User.hasMany(models.Project, {foreignKey: 'createdBy', as: 'creatorInfo'})
       User.hasMany(models.Task, {foreignKey: 'assignedTo', as: 'userInfo'})
+      User.hasMany(models.comment, {foreignKey: 'userId', as: 'userInfoComment'})
+      User.hasMany(models.activityLog, {foreignKey: 'userId', as: 'userInfoActivityLog'})
     }
   }
   User.init({

@@ -12,5 +12,6 @@ npx sequelize-cli db:seed:undo
 npm install bcryptjs
 npm install nodemailer
 npm install lodash
+npm install cookie-parser
 ------------------------
 "logging": true,  | dung de in cau lenh query

@@ -54,19 +54,42 @@ let postCreateComment = (data) => {
 let getAllComments = (query) => {
    return new Promise(async (resolve, reject) => {
       try {
-         const {id} = query;
+         const {userId, taskId} = query;
          let whereCondition = {};
-         if(id) {
+         if(userId && taskId) {
             whereCondition = {
-               id: id
+               [Op.and]: [
+                  {userId: {[Op.eq]: userId}},
+                  {taskId: {[Op.eq]: taskId}},
+               ]
+            }
+         } else if(userId) {
+            whereCondition = {
+               userId: userId
+            }
+         } else if(taskId) {
+            whereCondition = {
+               taskId: taskId
             }
          }
          let data = await db.comment.findAll({
-            where: whereCondition
+            where: whereCondition,
+            include: [
+               {
+                  model: db.User,
+                  as: 'userInfoComment',
+                  attributes: ['userName', 'fullName', 'email', 'role']
+               },
+               {
+                  model: db.Task,
+                  as: 'taskInfo',
+                  attributes: ['title', 'description', 'status', 'priority', 'dueDate']
+               }
+            ]
          })
          resolve({
             errorCode: 0,
-            errorMessage: 'Get all comments or get with id',
+            errorMessage: 'Get all comments or get with userId or taskId',
             data: data
          })
       } catch (error) {

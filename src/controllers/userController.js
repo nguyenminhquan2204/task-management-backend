@@ -68,14 +68,36 @@ let deleteUser = async (req, res) => {
 
 let postLogin = async (req, res) => {
    try {
-      let data = await userServices.postLogin(req.body);
-
-      return res.status(200).json(data);
+      let response = await userServices.postLogin(req.body);
+      if(response && response.errorCode === 0) {
+         res.cookie("token", response.user.token, {
+            maxAge: 60*60*1000,
+            httpOnly: true,
+            secure: false
+         });
+      }
+      return res.status(200).json(response);
    } catch (error) {
       console.log(error);
       return res.status(200).json({
          errorCode: -1,
          errorMessage: 'Error from the server! Contact Nguyen Quan'
+      })
+   }
+}
+
+let postLogOut = async (req, res) => {
+   try {
+      res.clearCookie("token");
+      return res.status(200).json({
+         errorCode: 0,
+         errorMessage: 'Logout successfully!'
+      })
+   } catch (error) {
+      console.log(error);
+      return res.status(200).json({
+         errorCode: -1,
+         errorMessage: 'Error from server! Contact Nguyen Quan.'
       })
    }
 }
@@ -126,6 +148,7 @@ module.exports = {
    getUserById: getUserById,
    deleteUser: deleteUser,
    postLogin: postLogin,
+   postLogOut: postLogOut,
    postForgotPassword: postForgotPassword,
    postVerifyForgotPassword: postVerifyForgotPassword,
    getSearchUsersByUserName: getSearchUsersByUserName,
