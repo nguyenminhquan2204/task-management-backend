@@ -1,7 +1,7 @@
 import { Op } from 'sequelize';
 import { checkIsValidInput } from '../helpers/checkIsValidInput';
 import db from '../models/index';
-import _ from 'lodash';
+import _, { reject } from 'lodash';
 
 let postCreateComment = (data) => {
    return new Promise(async (resolve, reject) => {
@@ -51,6 +51,64 @@ let postCreateComment = (data) => {
    })
 }
 
+let getAllComments = (query) => {
+   return new Promise(async (resolve, reject) => {
+      try {
+         const {id} = query;
+         let whereCondition = {};
+         if(id) {
+            whereCondition = {
+               id: id
+            }
+         }
+         let data = await db.comment.findAll({
+            where: whereCondition
+         })
+         resolve({
+            errorCode: 0,
+            errorMessage: 'Get all comments or get with id',
+            data: data
+         })
+      } catch (error) {
+         reject(error);
+      }
+   })
+}
+
+let deleteCommentById = (query) => {
+   return new Promise(async (resolve, reject) => {
+      try {
+         const { id } = query;
+         if(!id) {
+            resolve({
+               errorCode: 1,
+               errorMessage: 'Missing parameter'
+            })
+         } else {
+            let checkCommentExist = await db.comment.findOne({
+               where: {id: id}
+            })
+            if(!checkCommentExist) {
+               resolve({
+                  errorCode: 2, 
+                  errorMessage: 'Comment is not found!'
+               })
+            } else {
+               await checkCommentExist.destroy();
+               resolve({
+                  errorCode: 0,
+                  errorMessage: 'Delete comment by id successfully!'
+               })
+            }
+         }
+      } catch (error) {
+         reject(error);
+      }
+   })
+}
+
 module.exports = {
-   postCreateComment
+   postCreateComment,
+   getAllComments,
+   deleteCommentById
 }

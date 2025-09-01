@@ -4,6 +4,7 @@ import userController from "../controllers/userController";
 import projectController from '../controllers/projectController';
 import taskController from '../controllers/taskController';
 import commentController from '../controllers/commentController';
+import projectMemberController from '../controllers/projectMemberController';
 
 let router = express.Router();
 
@@ -50,6 +51,11 @@ let initWebRoutes = (app) => {
 
    // API comments
    router.post('/api/create-comment', commentController.postCreateComment);
+   router.get('/api/get-all-comments-or-id', commentController.getAllComments);
+   router.delete('/api/delete-comment-by-id', commentController.deleteCommentById);
+
+   // API projectMembers
+   router.post('/api/create-project-member', projectMemberController.postCreateProjectMember);
 
    return app.use("/", router);
 }
