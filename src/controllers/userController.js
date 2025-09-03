@@ -76,6 +76,7 @@ let postLogin = async (req, res) => {
             secure: false
          });
       }
+      delete response.user.token;
       return res.status(200).json(response);
    } catch (error) {
       console.log(error);

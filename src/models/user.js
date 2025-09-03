@@ -15,6 +15,7 @@ module.exports = (sequelize, DataTypes) => {
       User.hasMany(models.Task, {foreignKey: 'assignedTo', as: 'userInfo'})
       User.hasMany(models.comment, {foreignKey: 'userId', as: 'userInfoComment'})
       User.hasMany(models.activityLog, {foreignKey: 'userId', as: 'userInfoActivityLog'})
+      User.hasMany(models.projectMember, {foreignKey: 'userId', as: 'projectMemeberInfo'})
     }
   }
   User.init({

@@ -14,6 +14,7 @@ module.exports = (sequelize, DataTypes) => {
       // Project.belongsTo(models.User, {foreignKey: 'createdBy', targetKey: 'id', as: 'creatorData'})
       Project.belongsTo(models.User, {foreignKey: 'createdBy', targetKey: 'id', as: 'creatorInfo'})
       Project.hasMany(models.Task, {foreignKey: 'projectId', as: 'projectData'})
+      // Project.belongsTo(models.projectMember, {foreignKey: 'projectId', targetKey: 'id', as: 'projectMemberInfo'})
     }
   }
   Project.init({

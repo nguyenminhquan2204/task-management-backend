@@ -1,7 +1,8 @@
 import { checkIsValidInput } from '../helpers/checkIsValidInput';
 import db from '../models/index';
-import _ from 'lodash';
+import _, { includes } from 'lodash';
 import { Op, where } from 'sequelize';
+import emailServices from './emailServices';
 
 let postCreateProject = (data) => {
    return new Promise(async (resolve, reject) => {
@@ -103,52 +104,72 @@ let putEditProject = (data) => {
    })
 }
 
-let patchUpdateStatusProject = (data) => {
-   return new Promise(async (resolve, reject) => {
-      try {
-         if (_.isEmpty(data)) {
-            resolve({
-               errorCode: 1,
-               errorMessage: 'Missing project data'
-            })
-         } else {
-            let check = checkIsValidInput(data, ['id', 'status']);
+let patchUpdateStatusProject = async (data) => {
+   if (_.isEmpty(data)) {
+      return {
+         errorCode: 1,
+         errorMessage: 'Missing project data'
+      };
+   }
 
-            if (!check.isValid) {
-               resolve({
-                  errorCode: 2,
-                  errorMessage: `Missing parameters: ${check.element}`
-               })
-            } else {
-               let project = await db.Project.findOne({
-                  where: {
-                     id: data.id
-                  }
-               });
+   const check = checkIsValidInput(data, ['id', 'status']);
+   if (!check.isValid) {
+      return {
+         errorCode: 2,
+         errorMessage: `Missing parameters: ${check.element}`
+      };
+   }
 
-               if (!project) {
-                  resolve({
-                     errorCode: 3,
-                     errorMessage: 'Project not found'
-                  })
-               } else {
-                  project.status = data.status;
+   const project = await db.Project.findOne({
+      where: { id: data.id }
+   });
 
-                  await project.save();
+   if (!project) {
+      return {
+         errorCode: 3,
+         errorMessage: 'Project not found'
+      };
+   }
 
-                  resolve({
-                     errorCode: 0,
-                     errorMessage: 'Update project status successfully',
-                     project: project
-                  });
-               }
-            }
+   if (project.status === data.status) {
+      return {
+         errorCode: 4,
+         errorMessage: 'New status must be different from old status!'
+      };
+   }
+
+   project.status = data.status;
+   await project.save();
+
+   // Send email
+   let users = await db.projectMember.findAll({
+      where: {projectId: data.id},
+      include: [
+         {
+            model: db.User,
+            as: 'projectMemeberInfo',
+            attributes: ['userName', 'fullName', 'email']
          }
-      } catch (error) {
-         reject(error);
+      ]
+   })
+   let arrayUsers = users.map(user => {
+      return {
+         name: user.projectMemeberInfo.fullName,
+         email: user.projectMemeberInfo.email
       }
    })
-}
+   // console.log(arrayUsers);
+   await emailServices.sendEmailChangeStatusToUsers(project.name, arrayUsers, data.status);
+   // End Send email
+
+   return {
+      errorCode: 0,
+      errorMessage: 'Update project status successfully',
+      project,
+      users
+   };
+};
+
 
 let getAllProjects = () => {
    return new Promise(async (resolve, reject) => {
