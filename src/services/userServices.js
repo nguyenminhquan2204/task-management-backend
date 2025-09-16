@@ -17,18 +17,21 @@ import {
    randomString
 } from '../helpers/randomString';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+require('dotenv').config();
 
 let postCreateUser = (data) => {
    return new Promise(async (resolve, reject) => {
       try {
-         if(_.isEmpty(data)) {
+         if (_.isEmpty(data)) {
             resolve({
                errorCode: 1,
                errorMessage: 'Missing data'
             })
          } else {
             let check = checkIsValidInput(data, ['userName', 'email', 'password', 'fullName', 'role']);
-            if(!check.isValid) {
+            // let check = checkIsValidInput(data, ['userName', 'email', 'password', 'fullName']);
+            if (!check.isValid) {
                resolve({
                   errorCode: 2,
                   errorMessage: `Missing parameter: ${check.element}`
@@ -74,7 +77,7 @@ let postCreateUser = (data) => {
 let putEditUser = (data) => {
    return new Promise(async (resolve, reject) => {
       try {
-         let check = checkIsValidInput(data, ['userName', 'email', 'fullName', 'password', 'role']);
+         let check = checkIsValidInput(data, ['userName', 'email', 'fullName', 'role']);
          if (_.isEmpty(data) || !check.isValid) {
             resolve({
                errorCode: 1,
@@ -95,7 +98,13 @@ let putEditUser = (data) => {
                })
             } else {
                // Update user
-               let hashedPassword = await hashValue(data.password);
+               // let hashedPassword = await hashValue(data.password);
+               let hashedPassword = '';
+               if(data.password) {
+                  hashedPassword = await hashValue(data.password);
+               } else {
+                  hashedPassword = user.password;
+               }
 
                await db.User.update({
                   userName: data.userName,
@@ -254,9 +263,22 @@ let postLogin = (data) => {
                   } else {
                      delete user.password;
                      user.token = randomString(20);
+                     const payload = {
+                        email: user.email,
+                        fullName: user.fullName,
+                        role: user.role
+                     }
+                     const access_token = jwt.sign(
+                        payload,
+                        process.env.JWT_SECRET,
+                        {
+                           expiresIn: process.env.JWT_EXPIRE
+                        }
+                     );
                      resolve({
                         errorCode: 0,
                         errorMessage: 'Login successfully!',
+                        access_token: access_token,
                         user: user
                      })
                   }
@@ -327,6 +349,7 @@ let postVerifyForgotPassword = (data) => {
                   errorMessage: `Missing parameter: ${check.element}`
                })
             } else {
+               // console.log('xxxxxxxxxx check', data.email, data.token);
                let user = await db.User.findOne({
                   where: {
                      email: data.email,

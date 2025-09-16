@@ -6,5 +6,7 @@ module.exports.requiredAuth = (req, res, next) => {
          errorMessage: 'Plz login'
       });
    }
+   const access_token = req.headers.authorization.split(' ')[1];
+   console.log('aaaaaaa', token);
    next();
 };

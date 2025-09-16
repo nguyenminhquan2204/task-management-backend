@@ -196,15 +196,37 @@ let getAllProjects = () => {
    })
 }
 
-let getProjectById = (id) => {
+let getProjectByIdOrCreatedBy = (data) => {
    return new Promise(async (resolve, reject) => {
       try {
-         if (!id) {
-            resolve({
-               errorCode: 1,
-               errorMessage: 'Missing project id'
+         const { id, createdBy } = data || {};
+         if (id && createdBy) {
+            let project = await db.Project.findOne({
+               where: {
+                  id: id,
+                  createdBy: createdBy
+               },
+               include: [
+                  {
+                     model: db.User,
+                     as: 'creatorInfo',
+                     attributes: ['userName', 'fullName', 'email', 'role']
+                  }
+               ]
             })
-         } else {
+            if(!project) {
+               resolve({
+                  errorCode: 2,
+                  errorMessage: "Project's include id and createdBy not exist. Plz inspect again!"
+               })
+            } else {
+               resolve({
+                  errorCode: 0,
+                  errorMessage: 'Get project by id and createdBy successfully!',
+                  project: project
+               })
+            }
+         } else if(id){
             let project = await db.Project.findOne({
                where: {
                   id: id
@@ -230,6 +252,34 @@ let getProjectById = (id) => {
                   project: project
                })
             }
+         } else if(createdBy) {
+            let projectByCreatedBy = await db.Project.findAll({
+               where: { createdBy: createdBy },
+               include: [
+                  {
+                     model: db.User,
+                     as: 'creatorInfo',
+                     attributes: ['userName', 'fullName', 'email', 'role']
+                  }
+               ]
+            });
+            if(!projectByCreatedBy) {
+               resolve({
+                  errorCode: 2,
+                  errorMessage: 'CreatedBy is not exist ... !'
+               })
+            } else {
+               resolve({
+                  errorCode: 0,
+                  errorMessage: 'Get All projects by createdBy successfully!',
+                  projects: projectByCreatedBy
+               })
+            }
+         } else {
+            resolve({
+               errorCode: 1,
+               errorMessage: 'Missing parameter id or createdBy !'
+            })
          }
       } catch (error) {
          reject(error);
@@ -326,7 +376,7 @@ module.exports = {
    putEditProject: putEditProject,
    patchUpdateStatusProject: patchUpdateStatusProject,
    getAllProjects: getAllProjects,
-   getProjectById: getProjectById,
+   getProjectByIdOrCreatedBy: getProjectByIdOrCreatedBy,
    deleteProject: deleteProject,
    getSearchProjectsByName: getSearchProjectsByName,
 

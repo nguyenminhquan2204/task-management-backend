@@ -1,6 +1,7 @@
 import express from "express";
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
+import cors from 'cors';
 import viewEngine from "./config/viewEngine";
 // import initWebRoutes from "./route/web";
 import initRoutes from "./route/index.route";
@@ -17,7 +18,7 @@ app.use(bodyParser.urlencoded({
    extended: true
 }));
 app.use(cookieParser());
-
+app.use(cors());
 viewEngine(app);
 
 // Config router

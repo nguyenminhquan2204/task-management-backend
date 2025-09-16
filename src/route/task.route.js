@@ -7,7 +7,9 @@ router.post('/create-task', controller.postCreateTask);
 
 router.get('/get-all-tasks', controller.getAllTasks);
 
-router.get('/get-task-by-id', controller.getTaskById);
+router.get('/get-task-by-id-or-assigntedTo', controller.getTaskByIdOrAssigntedTo);
+
+router.get('/get-task-by-projectId', controller.getAllTaskByProjectId);
 
 router.delete('/delete-task-by-id', controller.deleteTaskById);
 

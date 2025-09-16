@@ -1,7 +1,7 @@
 import { where, Op } from "sequelize";
 import { checkIsValidInput } from "../helpers/checkIsValidInput";
 import db from "../models/index";
-import _, { assign, at } from 'lodash';
+import _, { assign, at, reject } from 'lodash';
 
 let postCreateTask = (data) => {
    return new Promise(async (resolve, reject) => {
@@ -75,19 +75,97 @@ let getAllTasks = () => {
    })
 }
 
-let getTaskById = (id) => {
+let getTaskByIdOrAssigntedTo = (data) => {
    return new Promise(async (resolve, reject) => {
       try {
-         if(!id) {
+         const { id, assignedTo } = data || {}
+         if(id && assignedTo) {
+            let task = await db.Task.findOne({
+               where: {
+                  id: id,
+                  assignedTo: assignedTo
+               },
+               include: [
+                  { model: db.Project, as: 'projectData', attributes: ['name', 'description', 'status', 'startDate', 'endDate'] },
+                  { model: db.User, as: 'userInfo', attributes: ['userName', 'email', 'fullName', 'role'] }
+               ]
+            })
+            if(!task) {
+               resolve({
+                  errorCode: 2,
+                  errorMessage: "Task is not exitst with id and assignedTo"
+               })
+            } else {
+               resolve({
+                  errorCode: 0,
+                  errorMessage: 'Get task by id and assignTo successfully!',
+                  task: task
+               })
+            }
+         } else if(id) {
+            let data = await db.Task.findOne({
+               where: {id: id},
+               include: [
+                  { model: db.Project, as: 'projectData', attributes: ['name', 'description', 'status', 'startDate', 'endDate'] },
+                  { model: db.User, as: 'userInfo', attributes: ['userName', 'email', 'fullName', 'role'] }
+               ]
+            });
+            if(data) {
+               resolve({
+                  errorCode: 0,
+                  errorMessage: 'OK',
+                  data: data
+               })
+            } else {
+               resolve({
+                  errorCode: 2,
+                  errorMessage: 'Task not found'
+               })
+            }
+         } else if(assignedTo) {
+            let tasks = await db.Task.findAll({
+               where: { assignedTo: assignedTo },
+               include: [
+                  { model: db.Project, as: 'projectData', attributes: ['name', 'description', 'status', 'startDate', 'endDate'] },
+                  { model: db.User, as: 'userInfo', attributes: ['userName', 'email', 'fullName', 'role'] }
+               ]
+            })
+            if(!tasks) {
+               resolve({
+                  errorCode: 2,
+                  errorMessage: 'Task is not exitst with assigntedTo'
+               })
+            } else {
+               resolve({
+                  errorCode: 0,
+                  errorMessage: 'Get task by assigntedTo successfully!',
+                  tasks: tasks
+               })
+            }
+         } else {
+            resolve({
+               errorCode: 1,
+               errorMessage: 'Missing parameter id or assignedTo'
+            })
+         }
+      } catch (error) {
+         reject(error);
+      }
+   })
+}
+
+let getAllTaskByProjectId = (projectId) => {
+   return new Promise(async (resolve, reject) => {
+      try {
+         if(!projectId) {
             resolve({
                errorCode: 1,
                errorMessage: 'Missing required parameter'
             })
          } else {
-            let data = await db.Task.findOne({
-               where: {id: id},
+            let data = await db.Task.findAll({
+               where: {projectId: projectId},
                include: [
-                  { model: db.Project, as: 'projectData', attributes: ['name', 'description', 'status', 'startDate', 'endDate'] },
                   { model: db.User, as: 'userInfo', attributes: ['userName', 'email', 'fullName', 'role'] }
                ]
             });
@@ -192,7 +270,7 @@ let patchChangeStatusTaskById = (data) => {
                errorMessage: 'Missing data'
             })
          } else {
-            let check = checkIsValidInput(data, ['id','status']);
+            let check = checkIsValidInput(data, ['id']);
             if(!check.isValid) {
                resolve({
                   errorCode: 2,
@@ -214,11 +292,16 @@ let patchChangeStatusTaskById = (data) => {
                      errorMessage: 'Task not found'
                   })
                } else {
-                  task.status = data.status;
+                  if(data.status) {
+                     task.status = data.status
+                  }
+                  if(data.priority) {
+                     task.priority = data.priority;
+                  }
                   await task.save();
                   resolve({
                      errorCode: 0,
-                     errorMessage: 'Change status task by id successfully!',
+                     errorMessage: 'Change progress task by id successfully!',
                      data: task
                   })
                }
@@ -233,8 +316,9 @@ let patchChangeStatusTaskById = (data) => {
 module.exports = {
    postCreateTask,
    getAllTasks,
-   getTaskById,
+   getTaskByIdOrAssigntedTo,
    deleteTaskById,
    getSearchTaskByTitleStatus,
-   patchChangeStatusTaskById
+   patchChangeStatusTaskById,
+   getAllTaskByProjectId
 }

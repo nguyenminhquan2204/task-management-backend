@@ -52,9 +52,9 @@ let getAllProjects = async (req, res) => {
    }
 }
 
-let getProjectById = async (req, res) => {
+let getProjectByIdOrCreatedBy = async (req, res) => {
    try {
-      let data = await projectServices.getProjectById(req.query.id);
+      let data = await projectServices.getProjectByIdOrCreatedBy(req.body);
       return res.status(200).json(data);
    } catch (error) {
       console.log(error);
@@ -91,13 +91,26 @@ let getSearchProjectsByName = async (req, res) => {
    }
 }
 
+let getAllProjectsByCreatedBy = async (req, res) => {
+   try {
+      
+   } catch (error) {
+      console.log(error);
+      return res.status(200).json({
+         errorCode: -1,
+         errorMessage: 'Error from server ! Contact Nguyen Quan'
+      })
+   }
+}
+
 module.exports = {
    postCreateProject: postCreateProject,
    putEditProject: putEditProject,
    patchUpdateStatusProject: patchUpdateStatusProject,
    getAllProjects: getAllProjects,
-   getProjectById: getProjectById,
+   getProjectByIdOrCreatedBy: getProjectByIdOrCreatedBy,
    deleteProject: deleteProject,
    getSearchProjectsByName: getSearchProjectsByName,
+   getAllProjectsByCreatedBy: getAllProjectsByCreatedBy,
 
 }
