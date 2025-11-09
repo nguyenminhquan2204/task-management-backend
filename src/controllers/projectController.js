@@ -54,7 +54,7 @@ let getAllProjects = async (req, res) => {
 
 let getProjectByIdOrCreatedBy = async (req, res) => {
    try {
-      let data = await projectServices.getProjectByIdOrCreatedBy(req.body);
+      let data = await projectServices.getProjectByIdOrCreatedBy(req.query);
       return res.status(200).json(data);
    } catch (error) {
       console.log(error);

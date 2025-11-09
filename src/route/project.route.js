@@ -5,7 +5,7 @@ let router = express.Router();
 
 router.post('/create-project', controller.postCreateProject);
 
-router.put('/edit-project-by-id-or-createdBy', controller.putEditProject);
+router.put('/edit-project', controller.putEditProject);
 
 router.patch('/update-status-project', controller.patchUpdateStatusProject);
 

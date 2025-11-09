@@ -1,6 +1,6 @@
 import systemConfig from '../config/system';
-import authMiddleware from '../middlewares/client/auth.middleware';
-import authJWT from '../middlewares/client/authJwt.middleware';
+import { authJwt } from '../middlewares/client/authJwt.middleware';
+import { requireRole } from '../middlewares/client/role.middleware';
 import userRouter from './user.route';
 import loginRouter from './login.route';
 import projectRouter from './project.route';
@@ -10,7 +10,6 @@ import projectMemberRouter from './projectMember.route';
 import activityLogRouter from './activityLog.route';
 
 module.exports = (app) => {
-   // app.use()
 
    app.use(
       systemConfig.prefixPath,
@@ -18,34 +17,35 @@ module.exports = (app) => {
    )
    app.use(
       systemConfig.prefixPath + '/user',
-      // authMiddleware.requiredAuth,
-
+      authJwt,
+      requireRole(['Admin', 'Leader']),
       userRouter
    )
    app.use(
       systemConfig.prefixPath + '/project',
-      // authMiddleware.requiredAuth,
-      // authJWT.auth,
+      authJwt,
+      requireRole(['Admin', 'Leader']),
       projectRouter
    )
    app.use(
       systemConfig.prefixPath + '/task',
-      // authMiddleware.requiredAuth,
+      authJwt,
+      requireRole(['Admin', 'Leader']),
       taskRouter
    )
    app.use(
       systemConfig.prefixPath + '/comment',
-      // authMiddleware.requiredAuth,
+      authJwt,
       commentRouter
    )
    app.use(
       systemConfig.prefixPath + '/project-member',
-      // authMiddleware.requiredAuth,
+      authJwt,
+      requireRole(['Admin', 'Leader']),
       projectMemberRouter
    )
    app.use(
       systemConfig.prefixPath + '/activity-log',
-      // authMiddleware.requiredAuth,
       activityLogRouter
    )
 }
